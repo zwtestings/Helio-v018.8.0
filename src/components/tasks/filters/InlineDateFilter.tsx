@@ -120,8 +120,8 @@ const InlineDateFilter: React.FC<InlineDateFilterProps> = ({
                 day_today: "!bg-accent/20 !text-white",
                 day_selected: "!bg-white !text-black",
                 // Single date gets full rounding, range gets proper edge rounding
-                day_range_start: isSingleDate ? "!bg-white !text-black !rounded-full" : "!bg-white !text-black !rounded-l-full !rounded-r-none",
-                day_range_end: isSingleDate ? "!bg-white !text-black !rounded-full" : "!bg-white !text-black !rounded-r-full !rounded-l-none",
+                day_range_start: isSingleDate ? "!bg-white !text-black !rounded-[10px]" : "!bg-white !text-black !rounded-l-full !rounded-r-none",
+                day_range_end: isSingleDate ? "!bg-white !text-black !rounded-[10px]" : "!bg-white !text-black !rounded-r-full !rounded-l-none",
                 day_range_middle: "!bg-white !text-black !rounded-none",
               }}
             />
