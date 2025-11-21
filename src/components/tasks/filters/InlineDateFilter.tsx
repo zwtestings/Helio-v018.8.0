@@ -20,14 +20,12 @@ const InlineDateFilter: React.FC<InlineDateFilterProps> = ({
   const [searchInput, setSearchInput] = useState('');
 
   const datePresets = [
+    'All',
     'Today',
-    'Tomorrow',
-    '1 day',
-    '2 days',
-    '3 days',
-    '1 week',
-    '2 weeks',
-    '1 month',
+    'This week',
+    'Next 7 days',
+    'This month',
+    'Next 30 days',
   ];
 
   const filteredPresets = useMemo(() => {
@@ -84,8 +82,8 @@ const InlineDateFilter: React.FC<InlineDateFilterProps> = ({
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'w-full justify-center text-center bg-[#1b1b1b] text-gray-300 hover:bg-[#2e2e2e] hover:text-white border border-[#414141] rounded-[15px] h-9 text-xs transition-all duration-200',
-                    selectedDate === preset && 'bg-white text-black hover:bg-white/90'
+                    'w-full justify-center text-center bg-[#1b1b1b] text-gray-300 hover:bg-[#2e2e2e] hover:text-white border border-[#414141] rounded-[15px] h-9 text-xs font-normal transition-all duration-200',
+                    selectedDate === preset && 'bg-white text-black hover:bg-white hover:text-black'
                   )}
                 >
                   {preset}
@@ -94,17 +92,14 @@ const InlineDateFilter: React.FC<InlineDateFilterProps> = ({
             </div>
           </div>
 
-          {selectedDate && (
-            <Button
-              onClick={clearAll}
-              variant="ghost"
-              size="sm"
-              className="w-full text-gray-400 hover:text-red-400 hover:bg-red-500/10 border border-[#414141] rounded-[8px] text-xs"
-            >
-              <X className="h-3 w-3 mr-1" />
-              Clear
-            </Button>
-          )}
+          <Button
+            onClick={clearAll}
+            variant="ghost"
+            size="sm"
+            className="w-full text-gray-400 hover:text-white hover:bg-[#2e2e2e] border border-[#414141] rounded-[8px] text-xs font-normal"
+          >
+            No date
+          </Button>
         </div>
       )}
     </div>
