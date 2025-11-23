@@ -32,6 +32,7 @@ interface TaskItemProps {
   onDeleteTask: (taskId: string) => void;
   getLabelColor: (labelName: string) => string;
   getPriorityStyle: (priorityName: string) => { bg: string; text: string };
+  isDeleted?: boolean;
 }
 
 const TaskItem: React.FC<TaskItemProps> = ({
@@ -52,6 +53,7 @@ const TaskItem: React.FC<TaskItemProps> = ({
   onDeleteTask,
   getLabelColor,
   getPriorityStyle,
+  isDeleted = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
@@ -125,59 +127,82 @@ const TaskItem: React.FC<TaskItemProps> = ({
           <div className="flex items-center gap-1 ml-auto">
             {!isDeleteConfirming ? (
               <>
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenTask(task.id);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
-                      <p className="text-xs">Open</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                {isDeleted ? (
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteTask(task.id);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-green-600/20 text-green-400 hover:bg-green-600/30 transition-all text-xs font-medium"
+                        >
+                          Restore
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
+                        <p className="text-xs">Restore Task</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onOpenTask(task.id);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
+                          <p className="text-xs">Open</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditTask(task.id);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
-                      <p className="text-xs">Edit</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEditTask(task.id);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
+                          <p className="text-xs">Edit</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
 
-                <TooltipProvider delayDuration={100}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={handleDeleteClick}
-                        className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
-                      <p className="text-xs">Delete</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                    <TooltipProvider delayDuration={100}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={handleDeleteClick}
+                            className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
+                          <p className="text-xs">Delete</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
+                )}
               </>
             ) : (
               <button

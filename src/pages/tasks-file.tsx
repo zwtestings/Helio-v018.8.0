@@ -22,14 +22,20 @@ interface Task {
   reminder?: string;
   labels?: string[];
   repeat?: string;
+  isDraft?: boolean;
 }
 
 const Tasks = () => {
   const [currentView, setCurrentView] = useState('list');
+  const [currentTaskView, setCurrentTaskView] = useState<'drafts' | 'total' | 'completed' | 'pending' | 'deleted'>('total');
   const [isRotated, setIsRotated] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(() => {
     const savedTasks = localStorage.getItem('kario-tasks');
     return savedTasks ? JSON.parse(savedTasks) : [];
+  });
+  const [deletedTasks, setDeletedTasks] = useState<Task[]>(() => {
+    const savedDeletedTasks = localStorage.getItem('kario-deleted-tasks');
+    return savedDeletedTasks ? JSON.parse(savedDeletedTasks) : [];
   });
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -63,10 +69,16 @@ const Tasks = () => {
     return saved ? JSON.parse(saved) : { date: '', priorities: [], labels: [] };
   });
 
+  // Save deleted tasks to localStorage
+  React.useEffect(() => {
+    localStorage.setItem('kario-deleted-tasks', JSON.stringify(deletedTasks));
+  }, [deletedTasks]);
+
   // Calculate task statistics
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(task => task.completed).length;
   const pendingTasks = tasks.filter(task => !task.completed).length;
+  const draftTasks = tasks.filter(task => task.isDraft).length;
 
   const getPriorityColorFromStorage = (priorityName: string) => {
     const saved = localStorage.getItem('kario-custom-priorities');
@@ -139,7 +151,8 @@ const Tasks = () => {
         description: newTaskDescription.trim(),
         reminder: selectedReminder,
         labels: selectedLabels,
-        repeat: selectedRepeat || undefined
+        repeat: selectedRepeat || undefined,
+        isDraft: !selectedDate && !newTaskDescription.trim() // Mark as draft if no date or description
       };
       const updatedTasks = [...tasks, newTask];
       setTasks(updatedTasks);
@@ -180,10 +193,26 @@ const Tasks = () => {
   };
 
   const handleDeleteTask = (taskId: string) => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
-    setTasks(updatedTasks);
-    localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
+    const taskToDelete = tasks.find(task => task.id === taskId);
+    if (taskToDelete) {
+      // Move task to deleted tasks
+      setDeletedTasks(prev => [...prev, { ...taskToDelete, deletedAt: new Date().toISOString() } as any]);
+      // Remove from active tasks
+      const updatedTasks = tasks.filter(task => task.id !== taskId);
+      setTasks(updatedTasks);
+      localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
+    }
     setContextMenu(null);
+  };
+
+  const handleRestoreTask = (taskId: string) => {
+    const taskToRestore = deletedTasks.find(task => task.id === taskId);
+    if (taskToRestore) {
+      const { deletedAt, ...restoredTask } = taskToRestore as any;
+      setTasks(prev => [...prev, restoredTask]);
+      setDeletedTasks(prev => prev.filter(task => task.id !== taskId));
+      localStorage.setItem('kario-tasks', JSON.stringify([...tasks, restoredTask]));
+    }
   };
 
   const handleEditTask = (taskId: string) => {
@@ -231,7 +260,8 @@ const Tasks = () => {
               time: selectedTime || task.time,
               reminder: selectedReminder,
               labels: selectedLabels,
-              repeat: selectedRepeat || undefined
+              repeat: selectedRepeat || undefined,
+              isDraft: !editDate && !editDescription.trim() // Update draft status
             }
           : task
       );
@@ -321,6 +351,16 @@ const Tasks = () => {
 
   const applyFiltersAndSort = (tasksToFilter: Task[]): Task[] => {
     let filtered = [...tasksToFilter];
+
+    // Apply view-based filtering first
+    if (currentTaskView === 'drafts') {
+      filtered = filtered.filter(task => task.isDraft);
+    } else if (currentTaskView === 'completed') {
+      filtered = filtered.filter(task => task.completed);
+    } else if (currentTaskView === 'pending') {
+      filtered = filtered.filter(task => !task.completed);
+    }
+    // 'total' shows all tasks, 'deleted' is handled separately
 
     // Helper function to parse DD/MM/YYYY format
     const parseDate = (dateString: string): Date => {
@@ -436,14 +476,21 @@ const Tasks = () => {
       });
   };
 
+  // Get tasks to display based on current view
+  const displayedTasks = currentTaskView === 'deleted' ? deletedTasks : applyFiltersAndSort(tasks);
+
   return (
     <div className="min-h-screen w-full bg-[#161618]">
       <TasksHeader
         totalTasks={totalTasks}
         completedTasks={completedTasks}
         pendingTasks={pendingTasks}
+        draftTasks={draftTasks}
+        deletedTasks={deletedTasks.length}
         currentView={currentView}
         setCurrentView={setCurrentView}
+        currentTaskView={currentTaskView}
+        setCurrentTaskView={setCurrentTaskView}
         onCreateTask={handleCreateTask}
         isRotated={isRotated}
         filterSettings={filterSettings}
@@ -468,6 +515,15 @@ const Tasks = () => {
         <div className="px-4 mt-4">
           <div className="ml-20">
             
+            {/* Information text for deleted section */}
+            {currentTaskView === 'deleted' && (
+              <div className="max-w-[980px] mb-4 p-4 bg-red-900/20 border border-red-800/30 rounded-lg">
+                <p className="text-red-300 text-sm leading-relaxed">
+                  Deleted tasks will be retained for a period of 7 days. After this time, they will be permanently deleted and cannot be recovered.
+                </p>
+              </div>
+            )}
+            
             {/* Case b & e: Tasks-By-Kairo Section */}
             <div className="max-w-[980px]">
               {/* Case f: Section heading with K icon that transforms to chevron on hover */}
@@ -490,7 +546,7 @@ const Tasks = () => {
 
                 {/* Task count indicator - positioned right next to heading */}
                 <div className="bg-[#242628] border border-[#414141] text-white font-orbitron font-bold px-3 py-1 rounded-[5px]">
-                  {applyFiltersAndSort(tasks).length}
+                  {displayedTasks.length}
                 </div>
 
                 {/* Three-dot menu icon (visible on hover) */}
@@ -506,7 +562,7 @@ const Tasks = () => {
                 {/* Card-based task list */}
                 <div className="space-y-3">
                   {sortSettings.creationDate ? (
-                    getTasksByDateGroup(applyFiltersAndSort(tasks)).map((group) => (
+                    getTasksByDateGroup(displayedTasks).map((group) => (
                       <div key={group.date}>
                         <div className="px-4 py-2 mt-4 mb-2">
                           <h3 className="text-gray-400 text-sm font-semibold">{group.date}</h3>
@@ -618,16 +674,17 @@ const Tasks = () => {
                               onToggleLabels={(taskId) => setExpandedLabelsTaskId(expandedLabelsTaskId === taskId ? null : taskId)}
                               onOpenTask={handleOpenTask}
                               onEditTask={handleEditTask}
-                              onDeleteTask={handleDeleteTask}
+                              onDeleteTask={currentTaskView === 'deleted' ? handleRestoreTask : handleDeleteTask}
                               getLabelColor={getLabelColor}
                               getPriorityStyle={getPriorityStyle}
+                              isDeleted={currentTaskView === 'deleted'}
                             />
                           )
                         ))}
                       </div>
                     ))
                   ) : (
-                    applyFiltersAndSort(tasks).map((task) => (
+                    displayedTasks.map((task) => (
                       editingTaskId === task.id ? (
                         <div key={task.id} className="p-4 bg-transparent border border-[#525252] rounded-[20px] min-h-[160px] relative z-10 overflow-visible mt-4">
                           {/* Section 1: Title */}
@@ -732,12 +789,13 @@ const Tasks = () => {
                           onDragEnd={handleDragEnd}
                           onToggle={handleToggleTask}
                           onToggleLabels={(taskId) => setExpandedLabelsTaskId(expandedLabelsTaskId === taskId ? null : taskId)}
-                          onOpenTask={handleOpenTask}
-                          onEditTask={handleEditTask}
-                          onDeleteTask={handleDeleteTask}
-                          getLabelColor={getLabelColor}
-                          getPriorityStyle={getPriorityStyle}
-                        />
+                            onOpenTask={handleOpenTask}
+                            onEditTask={handleEditTask}
+                            onDeleteTask={currentTaskView === 'deleted' ? handleRestoreTask : handleDeleteTask}
+                            getLabelColor={getLabelColor}
+                            getPriorityStyle={getPriorityStyle}
+                            isDeleted={currentTaskView === 'deleted'}
+                          />
                       )
                     ))
                   )}

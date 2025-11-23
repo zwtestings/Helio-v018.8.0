@@ -13,8 +13,12 @@ interface TasksHeaderProps {
   totalTasks: number;
   completedTasks: number;
   pendingTasks: number;
+  draftTasks: number;
+  deletedTasks: number;
   currentView: string;
   setCurrentView: (view: string) => void;
+  currentTaskView: 'drafts' | 'total' | 'completed' | 'pending' | 'deleted';
+  setCurrentTaskView: (view: 'drafts' | 'total' | 'completed' | 'pending' | 'deleted') => void;
   onCreateTask: () => void;
   isRotated: boolean;
   filterSettings?: { date: boolean; priority: boolean; label: boolean };
@@ -29,8 +33,12 @@ const TasksHeader = ({
   totalTasks,
   completedTasks,
   pendingTasks,
+  draftTasks,
+  deletedTasks,
   currentView,
   setCurrentView,
+  currentTaskView,
+  setCurrentTaskView,
   onCreateTask,
   isRotated,
   filterSettings = { date: false, priority: false, label: false },
@@ -249,28 +257,69 @@ const TasksHeader = ({
         
         {/* Task Indicators */}
         <div className="flex items-center gap-6 mt-7">
-          <div className="flex flex-col items-center group cursor-pointer transition-all duration-300">
-            <span className="font-orbitron text-2xl font-bold text-white border-b-2 border-white">
+          <div 
+            onClick={() => setCurrentTaskView('drafts')}
+            className="flex flex-col items-center group cursor-pointer transition-all duration-300"
+          >
+            <span className={`font-orbitron text-2xl font-bold text-blue-400 ${
+              currentTaskView === 'drafts' ? 'border-b-2 border-blue-400' : ''
+            }`}>
+              {draftTasks}
+            </span>
+            <span className="text-xs text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Drafts
+            </span>
+          </div>
+          <div 
+            onClick={() => setCurrentTaskView('total')}
+            className="flex flex-col items-center group cursor-pointer transition-all duration-300"
+          >
+            <span className={`font-orbitron text-2xl font-bold text-white ${
+              currentTaskView === 'total' ? 'border-b-2 border-white' : ''
+            }`}>
               {totalTasks}
             </span>
             <span className="text-xs text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              Total Tasks
+              Total
             </span>
           </div>
-          <div className="flex flex-col items-center group cursor-pointer transition-all duration-300">
-            <span className="font-orbitron text-2xl font-bold text-green-400">
+          <div 
+            onClick={() => setCurrentTaskView('completed')}
+            className="flex flex-col items-center group cursor-pointer transition-all duration-300"
+          >
+            <span className={`font-orbitron text-2xl font-bold text-green-400 ${
+              currentTaskView === 'completed' ? 'border-b-2 border-green-400' : ''
+            }`}>
               {completedTasks}
             </span>
             <span className="text-xs text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               Completed
             </span>
           </div>
-          <div className="flex flex-col items-center group cursor-pointer transition-all duration-300">
-            <span className="font-orbitron text-2xl font-bold text-red-400">
+          <div 
+            onClick={() => setCurrentTaskView('pending')}
+            className="flex flex-col items-center group cursor-pointer transition-all duration-300"
+          >
+            <span className={`font-orbitron text-2xl font-bold text-yellow-400 ${
+              currentTaskView === 'pending' ? 'border-b-2 border-yellow-400' : ''
+            }`}>
               {pendingTasks}
             </span>
             <span className="text-xs text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               Pending
+            </span>
+          </div>
+          <div 
+            onClick={() => setCurrentTaskView('deleted')}
+            className="flex flex-col items-center group cursor-pointer transition-all duration-300"
+          >
+            <span className={`font-orbitron text-2xl font-bold text-red-400 ${
+              currentTaskView === 'deleted' ? 'border-b-2 border-red-400' : ''
+            }`}>
+              {deletedTasks}
+            </span>
+            <span className="text-xs text-gray-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Deleted
             </span>
           </div>
         </div>
@@ -280,7 +329,19 @@ const TasksHeader = ({
       <div className="px-4 mt-[20px]">
         <div className="ml-20">
           <h1 className="text-white font-semibold" style={{ fontSize: '3.5rem' }}>
-            Tasks
+            {currentTaskView === 'total' ? (
+              'Tasks'
+            ) : (
+              <span>
+                <span 
+                  onClick={() => setCurrentTaskView('total')}
+                  className="text-gray-400 cursor-pointer hover:text-white transition-colors duration-200 border-b-2 border-gray-400"
+                >
+                  Tasks
+                </span>
+                <span> &gt; {currentTaskView.charAt(0).toUpperCase() + currentTaskView.slice(1)}</span>
+              </span>
+            )}
           </h1>
         </div>
       </div>
