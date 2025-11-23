@@ -75,9 +75,9 @@ const Tasks = () => {
   }, [deletedTasks]);
 
   // Calculate task statistics
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(task => task.completed).length;
-  const pendingTasks = tasks.filter(task => !task.completed).length;
+  const totalTasks = tasks.filter(task => !task.isDraft).length;
+  const completedTasks = tasks.filter(task => task.completed && !task.isDraft).length;
+  const pendingTasks = tasks.filter(task => !task.completed && !task.isDraft).length;
   const draftTasks = tasks.filter(task => task.isDraft).length;
 
   const getPriorityColorFromStorage = (priorityName: string) => {
