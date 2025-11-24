@@ -62,6 +62,11 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
     }
   };
 
+  const handleCloseButton = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClose();
+  };
+
   const handleAddSubtask = () => {
     if (newSubtaskTitle.trim()) {
       const newSubtask: Subtask = {
@@ -130,7 +135,7 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
         {/* Close Button */}
         <div className="flex justify-end p-4">
           <button
-            onClick={onClose}
+            onClick={handleCloseButton}
             className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors flex-shrink-0"
           >
             <X className="h-5 w-5 text-gray-400 hover:text-white" />

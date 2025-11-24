@@ -1048,6 +1048,11 @@ const Tasks = () => {
         onClose={handleCloseModal}
         getLabelColor={getLabelColor}
         getPriorityStyle={getPriorityStyle}
+        onTaskUpdate={(updatedTask) => {
+          const updatedTasks = tasks.map(t => t.id === updatedTask.id ? updatedTask : t);
+          setTasks(updatedTasks);
+          localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
+        }}
       />
     </div>
   );
