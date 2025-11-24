@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, Clock } from 'lucide-react';
+import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 interface Subtask {
@@ -11,13 +10,6 @@ interface Subtask {
   title: string;
   completed: boolean;
   creationDate: string;
-  dueDate?: string;
-  time?: string;
-  priority: string;
-  description: string;
-  reminder?: string;
-  labels?: string[];
-  repeat?: string;
 }
 
 interface Task {
@@ -54,15 +46,6 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [newSubtaskDescription, setNewSubtaskDescription] = useState('');
-  const [newSubtaskDate, setNewSubtaskDate] = useState<Date>();
-  const [newSubtaskTime, setNewSubtaskTime] = useState('');
-  const [newSubtaskPriority, setNewSubtaskPriority] = useState('Priority 3');
-  const [newSubtaskReminder, setNewSubtaskReminder] = useState<string>();
-  const [newSubtaskLabels, setNewSubtaskLabels] = useState<string[]>([]);
-  const [newSubtaskRepeat, setNewSubtaskRepeat] = useState('');
-  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
-  const [expandedSubtaskLabels, setExpandedSubtaskLabels] = useState<string | null>(null);
   const [localTask, setLocalTask] = useState<Task | null>(task);
 
   useEffect(() => {
@@ -87,24 +70,10 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
         title: newSubtaskTitle.trim(),
         completed: false,
         creationDate: new Date().toLocaleDateString(),
-        dueDate: newSubtaskDate ? newSubtaskDate.toLocaleDateString() : undefined,
-        time: newSubtaskTime || undefined,
-        priority: newSubtaskPriority,
-        description: newSubtaskDescription.trim(),
-        reminder: newSubtaskReminder,
-        labels: newSubtaskLabels,
-        repeat: newSubtaskRepeat || undefined,
       };
       const updatedSubtasks = [...subtasks, newSubtask];
       setSubtasks(updatedSubtasks);
       setNewSubtaskTitle('');
-      setNewSubtaskDescription('');
-      setNewSubtaskDate(undefined);
-      setNewSubtaskTime('');
-      setNewSubtaskPriority('Priority 3');
-      setNewSubtaskReminder(undefined);
-      setNewSubtaskLabels([]);
-      setNewSubtaskRepeat('');
 
       const updatedTask = { ...localTask, subtasks: updatedSubtasks };
       setLocalTask(updatedTask);
@@ -139,24 +108,6 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
 
   const handleDeleteSubtask = (subtaskId: string) => {
     const updatedSubtasks = subtasks.filter(st => st.id !== subtaskId);
-    setSubtasks(updatedSubtasks);
-
-    const updatedTask = { ...localTask, subtasks: updatedSubtasks };
-    setLocalTask(updatedTask);
-    if (onTaskUpdate) onTaskUpdate(updatedTask);
-
-    const savedTasks = localStorage.getItem('kario-tasks');
-    if (savedTasks) {
-      const tasks = JSON.parse(savedTasks);
-      const updatedTasks = tasks.map((t: Task) => t.id === localTask.id ? updatedTask : t);
-      localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
-    }
-  };
-
-  const handleUpdateSubtask = (subtaskId: string, updates: Partial<Subtask>) => {
-    const updatedSubtasks = subtasks.map(st =>
-      st.id === subtaskId ? { ...st, ...updates } : st
-    );
     setSubtasks(updatedSubtasks);
 
     const updatedTask = { ...localTask, subtasks: updatedSubtasks };
@@ -208,7 +159,14 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-gray-400">Details</h3>
                 <CollapsibleTrigger asChild>
-                  <Switch checked={isDetailsOpen} />
+                  <button
+                    className={cn(
+                      "p-2 hover:bg-[#2a2a2a] rounded-lg transition-all duration-200 flex-shrink-0",
+                      isDetailsOpen ? "transform" : ""
+                    )}
+                  >
+                    <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isDetailsOpen ? 'transform rotate-90' : ''}`} />
+                  </button>
                 </CollapsibleTrigger>
               </div>
               <CollapsibleContent>
@@ -276,27 +234,27 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
                     </div>
                   )}
                 </div>
-
-                {/* Labels inside Collapsible */}
-                {localTask.labels && localTask.labels.length > 0 && (
-                  <div className="pt-4 border-t border-[#414141]">
-                    <h4 className="text-sm font-semibold text-gray-400 mb-3">Labels</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {localTask.labels.map((label, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-[#252527] border border-[#414141] rounded-full"
-                        >
-                          <Tag className={`h-3 w-3 ${getLabelColor(label)}`} />
-                          <span className="text-xs text-gray-300">{label}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </CollapsibleContent>
             </div>
           </Collapsible>
+
+          {/* Labels */}
+          {localTask.labels && localTask.labels.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-400 mb-3">Labels</h3>
+              <div className="flex flex-wrap gap-2">
+                {localTask.labels.map((label, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-[#252527] border border-[#414141] rounded-full"
+                  >
+                    <Tag className={`h-3 w-3 ${getLabelColor(label)}`} />
+                    <span className="text-xs text-gray-300">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Subtasks Section */}
           <div className="space-y-3">
@@ -304,144 +262,52 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
 
             {/* Subtasks List */}
             {subtasks.length > 0 && (
-              <div className="space-y-3 bg-[#252527] border border-[#414141] rounded-lg p-4">
+              <div className="space-y-2">
                 {subtasks.map((subtask) => (
-                  <div key={subtask.id} className="space-y-2 p-3 bg-[#1f1f1f] rounded-lg border border-[#414141]">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleToggleSubtask(subtask.id)}
-                        className="flex-shrink-0"
-                      >
-                        {subtask.completed ? (
-                          <Check className="h-4 w-4 text-green-400" />
-                        ) : (
-                          <div className="h-4 w-4 border border-gray-400 rounded" />
-                        )}
-                      </button>
-                      <span className={`text-sm flex-1 font-medium ${subtask.completed ? 'text-gray-500 line-through' : 'text-white'}`}>
-                        {subtask.title}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteSubtask(subtask.id)}
-                        className="flex-shrink-0 p-1 hover:bg-red-500/10 rounded transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-400" />
-                      </button>
-                    </div>
-
-                    {subtask.description && (
-                      <p className="text-xs text-gray-400 ml-7">{subtask.description}</p>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2 ml-7 mt-2">
-                      {subtask.dueDate && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <Calendar className="h-3 w-3 text-gray-500" />
-                          <span className="text-gray-400">{subtask.dueDate}</span>
-                        </div>
+                  <div key={subtask.id} className="flex items-center gap-3 p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors">
+                    <button
+                      onClick={() => handleToggleSubtask(subtask.id)}
+                      className="flex-shrink-0"
+                    >
+                      {subtask.completed ? (
+                        <Check className="h-4 w-4 text-green-400" />
+                      ) : (
+                        <div className="h-4 w-4 border border-gray-400 rounded" />
                       )}
-                      {subtask.time && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <Clock className="h-3 w-3 text-gray-500" />
-                          <span className="text-gray-400">{subtask.time}</span>
-                        </div>
-                      )}
-                      {subtask.priority && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <Flag className={`h-3 w-3 ${getPriorityStyle(subtask.priority).text}`} />
-                          <span className="text-gray-400">{subtask.priority}</span>
-                        </div>
-                      )}
-                      {subtask.reminder && (
-                        <div className="flex items-center gap-2 text-xs">
-                          <Bell className="h-3 w-3 text-gray-500" />
-                          <span className="text-gray-400">{subtask.reminder}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {subtask.labels && subtask.labels.length > 0 && (
-                      <div className="flex flex-wrap gap-1 ml-7 mt-2">
-                        {subtask.labels.map((label, idx) => (
-                          <span key={idx} className={`text-xs ${getLabelColor(label)}`}>
-                            {label}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    </button>
+                    <span className={`text-sm flex-1 ${subtask.completed ? 'text-gray-500 line-through' : 'text-white'}`}>
+                      {subtask.title}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteSubtask(subtask.id)}
+                      className="flex-shrink-0 p-1 hover:bg-red-500/10 rounded transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-400" />
+                    </button>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Add Subtask Form */}
-            <div className="space-y-2 bg-[#252527] border border-[#414141] rounded-lg p-4">
+            {/* Add Subtask Input */}
+            <div className="flex gap-2">
               <Input
                 type="text"
-                placeholder="Subtask title..."
+                placeholder="Add a subtask..."
                 value={newSubtaskTitle}
                 onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-sm h-8"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAddSubtask();
+                  }
+                }}
+                className="bg-[#252527] border border-[#414141] text-white placeholder-gray-500 text-sm h-8"
               />
-
-              <Input
-                type="text"
-                placeholder="Description (optional)"
-                value={newSubtaskDescription}
-                onChange={(e) => setNewSubtaskDescription(e.target.value)}
-                className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-sm h-8"
-              />
-
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  type="date"
-                  value={newSubtaskDate ? newSubtaskDate.toISOString().split('T')[0] : ''}
-                  onChange={(e) => setNewSubtaskDate(e.target.value ? new Date(e.target.value) : undefined)}
-                  className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-xs h-8"
-                />
-
-                <Input
-                  type="time"
-                  value={newSubtaskTime}
-                  onChange={(e) => setNewSubtaskTime(e.target.value)}
-                  className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-xs h-8"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={newSubtaskPriority}
-                  onChange={(e) => setNewSubtaskPriority(e.target.value)}
-                  className="bg-[#1f1f1f] border border-[#414141] text-white text-xs h-8 rounded px-2"
-                >
-                  {['Priority 1', 'Priority 2', 'Priority 3', 'Priority 4', 'Priority 5', 'Priority 6'].map(p => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-
-                <Input
-                  type="text"
-                  placeholder="Reminder (e.g., 15 min before)"
-                  value={newSubtaskReminder || ''}
-                  onChange={(e) => setNewSubtaskReminder(e.target.value || undefined)}
-                  className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-xs h-8"
-                />
-              </div>
-
-              <Input
-                type="text"
-                placeholder="Labels (comma separated)"
-                value={newSubtaskLabels.join(', ')}
-                onChange={(e) => setNewSubtaskLabels(e.target.value.split(',').map(l => l.trim()).filter(l => l))}
-                className="bg-[#1f1f1f] border border-[#414141] text-white placeholder-gray-500 text-xs h-8"
-              />
-
               <button
                 onClick={handleAddSubtask}
-                className="w-full flex items-center justify-center gap-2 p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-[#414141]"
+                className="flex-shrink-0 p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors"
               >
-                <Plus className="h-4 w-4 text-gray-400" />
-                <span className="text-sm text-gray-400">Add Subtask</span>
+                <Plus className="h-4 w-4 text-gray-400 hover:text-white" />
               </button>
             </div>
           </div>
