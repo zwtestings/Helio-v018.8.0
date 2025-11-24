@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, ChevronRight } from 'lucide-react';
+import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, ChevronRight, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import TaskCreationForm from './TaskCreationForm';
+import SubtaskItem from './SubtaskItem';
 
 interface Subtask {
   id: string;
@@ -62,6 +63,17 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
   const [newSubtaskRepeat, setNewSubtaskRepeat] = useState('');
   const [isAddingSubtask, setIsAddingSubtask] = useState(false);
   const [localTask, setLocalTask] = useState<Task | null>(task);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; subtaskId: string } | null>(null);
+  const [editingSubtaskId, setEditingSubtaskId] = useState<string | null>(null);
+  const [expandedLabelsSubtaskId, setExpandedLabelsSubtaskId] = useState<string | null>(null);
+  const [editSubtaskTitle, setEditSubtaskTitle] = useState('');
+  const [editSubtaskDescription, setEditSubtaskDescription] = useState('');
+  const [editSubtaskDate, setEditSubtaskDate] = useState<Date | undefined>();
+  const [editSubtaskTime, setEditSubtaskTime] = useState('');
+  const [editSubtaskPriority, setEditSubtaskPriority] = useState('Priority 3');
+  const [editSubtaskReminder, setEditSubtaskReminder] = useState<string | undefined>();
+  const [editSubtaskLabels, setEditSubtaskLabels] = useState<string[]>([]);
+  const [editSubtaskRepeat, setEditSubtaskRepeat] = useState('');
 
   useEffect(() => {
     setLocalTask(task);
@@ -69,6 +81,15 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
       setSubtasks(task.subtasks || []);
     }
   }, [task]);
+
+  useEffect(() => {
+    const handleClick = () => {
+      setContextMenu(null);
+      setExpandedLabelsSubtaskId(null);
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
 
   if (!localTask) return null;
 
@@ -167,6 +188,97 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
       const updatedTasks = tasks.map((t: Task) => t.id === localTask.id ? updatedTask : t);
       localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
     }
+    setContextMenu(null);
+  };
+
+  const handleContextMenuSubtask = (e: React.MouseEvent, subtaskId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, subtaskId });
+  };
+
+  const handleEditSubtask = (subtaskId: string) => {
+    const subtaskToEdit = subtasks.find(st => st.id === subtaskId);
+    if (subtaskToEdit) {
+      setEditingSubtaskId(subtaskId);
+      setEditSubtaskTitle(subtaskToEdit.title);
+      setEditSubtaskDescription(subtaskToEdit.description);
+      setEditSubtaskPriority(subtaskToEdit.priority);
+
+      let parsedDate: Date | undefined = undefined;
+      if (subtaskToEdit.dueDate) {
+        const parts = subtaskToEdit.dueDate.split('/');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const year = parseInt(parts[2], 10);
+          const date = new Date(year, month, day);
+          if (!isNaN(date.getTime())) {
+            parsedDate = date;
+          }
+        }
+      }
+      setEditSubtaskDate(parsedDate);
+      setEditSubtaskTime(subtaskToEdit.time || '');
+      setEditSubtaskReminder(subtaskToEdit.reminder);
+      setEditSubtaskLabels(subtaskToEdit.labels || []);
+      setEditSubtaskRepeat(subtaskToEdit.repeat || '');
+    }
+    setContextMenu(null);
+  };
+
+  const handleSaveSubtaskEdit = () => {
+    if (editSubtaskTitle.trim() && editingSubtaskId) {
+      const updatedSubtasks = subtasks.map(st =>
+        st.id === editingSubtaskId
+          ? {
+              ...st,
+              title: editSubtaskTitle.trim(),
+              description: editSubtaskDescription.trim(),
+              priority: editSubtaskPriority,
+              dueDate: editSubtaskDate ? editSubtaskDate.toLocaleDateString() : st.dueDate,
+              time: editSubtaskTime || st.time,
+              reminder: editSubtaskReminder,
+              labels: editSubtaskLabels,
+              repeat: editSubtaskRepeat || undefined,
+            }
+          : st
+      );
+      setSubtasks(updatedSubtasks);
+
+      const updatedTask = { ...localTask, subtasks: updatedSubtasks };
+      setLocalTask(updatedTask);
+      if (onTaskUpdate) onTaskUpdate(updatedTask);
+
+      const savedTasks = localStorage.getItem('kario-tasks');
+      if (savedTasks) {
+        const tasks = JSON.parse(savedTasks);
+        const updatedTasks = tasks.map((t: Task) => t.id === localTask.id ? updatedTask : t);
+        localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
+      }
+
+      setEditingSubtaskId(null);
+      setEditSubtaskTitle('');
+      setEditSubtaskDescription('');
+      setEditSubtaskPriority('Priority 3');
+      setEditSubtaskDate(undefined);
+      setEditSubtaskTime('');
+      setEditSubtaskReminder(undefined);
+      setEditSubtaskLabels([]);
+      setEditSubtaskRepeat('');
+    }
+  };
+
+  const handleCancelSubtaskEdit = () => {
+    setEditingSubtaskId(null);
+    setEditSubtaskTitle('');
+    setEditSubtaskDescription('');
+    setEditSubtaskPriority('Priority 3');
+    setEditSubtaskDate(undefined);
+    setEditSubtaskTime('');
+    setEditSubtaskReminder(undefined);
+    setEditSubtaskLabels([]);
+    setEditSubtaskRepeat('');
   };
 
   return (
@@ -302,52 +414,45 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
             {subtasks.length > 0 && (
               <div className="space-y-2">
                 {subtasks.map((subtask) => (
-                  <div key={subtask.id} className="flex items-center gap-3 p-3 hover:bg-[#2a2a2a] rounded-lg transition-colors border border-transparent hover:border-[#414141]">
-                    <button
-                      onClick={() => handleToggleSubtask(subtask.id)}
-                      className="flex-shrink-0"
-                    >
-                      {subtask.completed ? (
-                        <Check className="h-4 w-4 text-green-400" />
-                      ) : (
-                        <div className="h-4 w-4 border border-gray-400 rounded" />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${subtask.completed ? 'text-gray-500 line-through' : 'text-white'}`}>
-                        {subtask.title}
-                      </p>
-                      {subtask.description && (
-                        <p className="text-xs text-gray-500 mt-1">{subtask.description}</p>
-                      )}
-                      {(subtask.dueDate || subtask.priority !== 'Priority 3' || (subtask.labels && subtask.labels.length > 0)) && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {subtask.dueDate && (
-                            <span className="text-xs bg-[#252527] border border-[#414141] px-2 py-1 rounded text-gray-300 flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {subtask.dueDate}
-                            </span>
-                          )}
-                          <span className={`text-xs px-2 py-1 rounded ${getPriorityStyle(subtask.priority).bg}`}>
-                            <Flag className={`h-3 w-3 inline mr-1 ${getPriorityStyle(subtask.priority).text}`} />
-                            <span className={getPriorityStyle(subtask.priority).text}>{subtask.priority}</span>
-                          </span>
-                          {subtask.labels && subtask.labels.map((label, idx) => (
-                            <span key={idx} className="text-xs bg-[#252527] border border-[#414141] px-2 py-1 rounded text-gray-300 flex items-center gap-1">
-                              <Tag className={`h-3 w-3 ${getLabelColor(label)}`} />
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteSubtask(subtask.id)}
-                      className="flex-shrink-0 p-1 hover:bg-red-500/10 rounded transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4 text-gray-400 hover:text-red-400" />
-                    </button>
-                  </div>
+                  editingSubtaskId === subtask.id ? (
+                    <TaskCreationForm
+                      key={subtask.id}
+                      title={editSubtaskTitle}
+                      onTitleChange={setEditSubtaskTitle}
+                      description={editSubtaskDescription}
+                      onDescriptionChange={setEditSubtaskDescription}
+                      selectedDate={editSubtaskDate}
+                      onDateSelect={setEditSubtaskDate}
+                      selectedTime={editSubtaskTime}
+                      onTimeSelect={setEditSubtaskTime}
+                      selectedPriority={editSubtaskPriority}
+                      onPrioritySelect={setEditSubtaskPriority}
+                      selectedReminder={editSubtaskReminder}
+                      onReminderSelect={setEditSubtaskReminder}
+                      selectedLabels={editSubtaskLabels}
+                      onLabelsSelect={setEditSubtaskLabels}
+                      selectedRepeat={editSubtaskRepeat}
+                      onRepeatSelect={setEditSubtaskRepeat}
+                      onCancel={handleCancelSubtaskEdit}
+                      onSaveDraft={handleSaveSubtaskEdit}
+                      onSave={handleSaveSubtaskEdit}
+                      showDraftButton={false}
+                      mode="edit"
+                    />
+                  ) : (
+                    <SubtaskItem
+                      key={subtask.id}
+                      subtask={subtask}
+                      onToggle={handleToggleSubtask}
+                      onEdit={handleEditSubtask}
+                      onDelete={handleDeleteSubtask}
+                      onContextMenu={handleContextMenuSubtask}
+                      getLabelColor={getLabelColor}
+                      getPriorityStyle={getPriorityStyle}
+                      expandedLabelsSubtaskId={expandedLabelsSubtaskId}
+                      onToggleLabels={(subtaskId) => setExpandedLabelsSubtaskId(expandedLabelsSubtaskId === subtaskId ? null : subtaskId)}
+                    />
+                  )
                 ))}
               </div>
             )}
@@ -398,6 +503,37 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
           <p>Additional features coming soon</p>
         </div>
       </div>
+
+      {/* Context Menu for Subtasks */}
+      {contextMenu && (
+        <div
+          className="fixed shadow-xl py-2 px-2 z-50"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+            borderRadius: '16px',
+            background: '#1f1f1f',
+            width: '180px',
+            border: 'none'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-white transition-all text-sm my-1 rounded-xl hover:border hover:border-[#3b3a3a] hover:bg-[#1f1f1f]"
+            onClick={() => handleEditSubtask(contextMenu.subtaskId)}
+          >
+            <Edit className="w-4 h-4" />
+            <span>Edit</span>
+          </button>
+          <button
+            className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-white transition-all text-sm my-1 rounded-xl hover:border hover:border-[#3b3a3a] hover:bg-[#1f1f1f]"
+            onClick={() => handleDeleteSubtask(contextMenu.subtaskId)}
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Delete</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
