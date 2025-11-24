@@ -48,8 +48,8 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
   const [localTask, setLocalTask] = useState<Task | null>(task);
 
   useEffect(() => {
+    setLocalTask(task);
     if (task) {
-      setLocalTask(task);
       setSubtasks(task.subtasks || []);
     }
   }, [task]);
