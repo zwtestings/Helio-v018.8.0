@@ -43,7 +43,7 @@ const Tasks = () => {
   const [isSectionExpanded, setIsSectionExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [selectedPriority, setSelectedPriority] = useState<string>('Priority 3');
+  const [selectedPriority, setSelectedPriority] = useState<string>('');
   const [selectedReminder, setSelectedReminder] = useState<string | undefined>();
   const [selectedLabels, setSelectedLabels] = useState<string[]>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; taskId: string } | null>(null);
@@ -163,7 +163,7 @@ const Tasks = () => {
       setNewTaskDescription('');
       setSelectedDate(undefined);
       setSelectedTime('');
-      setSelectedPriority('Priority 3');
+      setSelectedPriority('');
       setSelectedReminder(undefined);
       setSelectedLabels([]);
       setSelectedRepeat('');
@@ -195,7 +195,7 @@ const Tasks = () => {
       setNewTaskDescription('');
       setSelectedDate(undefined);
       setSelectedTime('');
-      setSelectedPriority('Priority 3');
+      setSelectedPriority('');
       setSelectedReminder(undefined);
       setSelectedLabels([]);
       setSelectedRepeat('');
