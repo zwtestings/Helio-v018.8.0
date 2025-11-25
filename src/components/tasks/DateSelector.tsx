@@ -349,13 +349,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({ selectedDate, onSelect, onT
               onSelect={handleCalendarSelect}
               month={displayMonth}
               onMonthChange={(date) => {
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const checkDate = new Date(date.getFullYear(), date.getMonth(), 1);
-                checkDate.setHours(0, 0, 0, 0);
-                if (checkDate >= today) {
-                  setDisplayMonth(date);
-                }
+                setDisplayMonth(date);
               }}
               disabled={isDateDisabled}
               className="rounded-[8px] transition-all duration-300 ease-in-out"
