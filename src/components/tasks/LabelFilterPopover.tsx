@@ -18,6 +18,8 @@ interface LabelData {
 const LabelFilterPopover: React.FC<LabelFilterPopoverProps> = ({ selectedLabels, onSelect }) => {
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [tempSelectedLabels, setTempSelectedLabels] = useState<string[]>(selectedLabels);
   const [availableLabels, setAvailableLabels] = useState<LabelData[]>(() => {
     const saved = localStorage.getItem('kario-labels');
     return saved ? JSON.parse(saved) : [];
@@ -49,15 +51,35 @@ const LabelFilterPopover: React.FC<LabelFilterPopoverProps> = ({ selectedLabels,
   }, [searchInput]);
 
   const toggleLabel = (label: string) => {
-    if (selectedLabels.includes(label)) {
-      onSelect(selectedLabels.filter(l => l !== label));
-    } else {
-      onSelect([...selectedLabels, label]);
-    }
+    const newLabels = selectedLabels.includes(label)
+      ? selectedLabels.filter(l => l !== label)
+      : [...selectedLabels, label];
+    setTempSelectedLabels(newLabels);
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmLabels = () => {
+    onSelect(tempSelectedLabels);
+    setShowConfirmation(false);
+    setOpen(false);
   };
 
   const clearAll = () => {
     onSelect([]);
+  };
+
+  const getRandomSaveMessage = () => {
+    const messages = [
+      'save?',
+      'looks good?',
+      'confirm?',
+      'this one?',
+      'lock it in?',
+      'keep this?',
+      'done?',
+      'all set?'
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
   };
 
   const getLabelColor = (labelName: string): string => {
@@ -164,8 +186,25 @@ const LabelFilterPopover: React.FC<LabelFilterPopoverProps> = ({ selectedLabels,
             )}
           </div>
 
+          {/* Confirmation */}
+          {showConfirmation && (
+            <div className="p-3 text-center border-t border-[#414141]">
+              <button
+                onClick={handleConfirmLabels}
+                className="text-gray-400 hover:text-white text-sm transition-colors duration-200 cursor-pointer underline decoration-dotted underline-offset-4 italic"
+                style={{
+                  fontFamily: 'monospace',
+                  imageRendering: 'pixelated',
+                  textRendering: 'optimizeSpeed'
+                }}
+              >
+                {getRandomSaveMessage()}
+              </button>
+            </div>
+          )}
+
           {/* Clear Button */}
-          {selectedLabels.length > 0 && (
+          {selectedLabels.length > 0 && !showConfirmation && (
             <div className="p-3 border-t border-[#414141]">
               <Button
                 onClick={clearAll}
