@@ -88,6 +88,41 @@ const TaskItem: React.FC<TaskItemProps> = ({
       };
       return colorMap[level as keyof typeof colorMap] || 'border-gray-400 hover:border-gray-300';
     }
+    const customPrioritiesJson = localStorage.getItem('kario-custom-priorities');
+    if (customPrioritiesJson) {
+      const customPriorities = JSON.parse(customPrioritiesJson);
+      const customPriority = customPriorities.find((p: { name: string; color: string }) => p.name === priority);
+      if (customPriority) {
+        const colorTextClass = customPriority.color;
+        const colorMap: { [key: string]: string } = {
+          'text-red-500': 'border-red-500 hover:border-red-400',
+          'text-orange-500': 'border-orange-500 hover:border-orange-400',
+          'text-yellow-500': 'border-yellow-500 hover:border-yellow-400',
+          'text-green-500': 'border-green-500 hover:border-green-400',
+          'text-blue-500': 'border-blue-500 hover:border-blue-400',
+          'text-cyan-500': 'border-cyan-500 hover:border-cyan-400',
+          'text-emerald-500': 'border-emerald-500 hover:border-emerald-400',
+          'text-teal-500': 'border-teal-500 hover:border-teal-400',
+          'text-sky-500': 'border-sky-500 hover:border-sky-400',
+          'text-amber-500': 'border-amber-500 hover:border-amber-400',
+          'text-lime-500': 'border-lime-500 hover:border-lime-400',
+          'text-pink-500': 'border-pink-500 hover:border-pink-400',
+          'text-rose-500': 'border-rose-500 hover:border-rose-400',
+          'text-fuchsia-500': 'border-fuchsia-500 hover:border-fuchsia-400',
+          'text-slate-400': 'border-slate-400 hover:border-slate-300',
+          'text-gray-400': 'border-gray-400 hover:border-gray-300',
+          'text-zinc-400': 'border-zinc-400 hover:border-zinc-300',
+          'text-stone-400': 'border-stone-400 hover:border-stone-300',
+          'text-red-600': 'border-red-600 hover:border-red-500',
+          'text-orange-600': 'border-orange-600 hover:border-orange-500',
+          'text-lime-600': 'border-lime-600 hover:border-lime-500',
+          'text-emerald-600': 'border-emerald-600 hover:border-emerald-500',
+          'text-indigo-500': 'border-indigo-500 hover:border-indigo-400',
+          'text-violet-500': 'border-violet-500 hover:border-violet-400',
+        };
+        return colorMap[colorTextClass] || 'border-gray-400 hover:border-gray-300';
+      }
+    }
     const colorClassFromStyle = priorityStyle.text;
     const colorMap: { [key: string]: string } = {
       'text-red-500': 'border-red-500 hover:border-red-400',

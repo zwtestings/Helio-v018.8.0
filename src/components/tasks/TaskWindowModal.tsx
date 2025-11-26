@@ -313,98 +313,100 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
           )}
 
           {/* Task Metadata - Collapsible */}
-          <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-            <div className="space-y-4">
-              <CollapsibleTrigger className="flex items-center justify-between w-full">
-                <h3 className="text-sm font-semibold text-gray-400">Details</h3>
-                <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isDetailsOpen ? 'rotate-90' : ''}`} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Due Date */}
-                  {(localTask.dueDate || localTask.time) && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Due Date</p>
-                        <p className="text-white">
-                          {localTask.dueDate && localTask.time
-                            ? `${localTask.dueDate} at ${localTask.time}`
-                            : localTask.dueDate || localTask.time}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Priority */}
-                  {(() => {
-                    const style = getPriorityStyle(localTask.priority);
-                    const flagColorClass = style.text;
-                    return (
+          {(localTask.dueDate || localTask.time || localTask.priority || localTask.reminder || localTask.repeat || localTask.creationDate || (localTask.labels && localTask.labels.length > 0)) && (
+            <Collapsible open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+              <div className="space-y-4">
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  <h3 className="text-sm font-semibold text-gray-400">Details</h3>
+                  <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${isDetailsOpen ? 'rotate-90' : ''}`} />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Due Date */}
+                    {(localTask.dueDate || localTask.time) && (
                       <div className="flex items-start gap-3">
-                        <Flag className={`h-4 w-4 ${flagColorClass} flex-shrink-0 mt-1`} />
+                        <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
                         <div>
-                          <p className="text-xs text-gray-500">Priority</p>
-                          <p className="text-white text-sm">{localTask.priority}</p>
+                          <p className="text-xs text-gray-500">Due Date</p>
+                          <p className="text-white">
+                            {localTask.dueDate && localTask.time
+                              ? `${localTask.dueDate} at ${localTask.time}`
+                              : localTask.dueDate || localTask.time}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })()}
+                    )}
 
-                  {/* Reminder */}
-                  {localTask.reminder && (
-                    <div className="flex items-start gap-3">
-                      <Bell className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Reminder</p>
-                        <p className="text-white">{localTask.reminder}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Repeat */}
-                  {localTask.repeat && (
-                    <div className="flex items-start gap-3">
-                      <Repeat className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Repeats</p>
-                        <p className="text-white">{localTask.repeat.replace(/-/g, ' ')}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Creation Date */}
-                  {localTask.creationDate && (
-                    <div className="flex items-start gap-3">
-                      <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
-                      <div>
-                        <p className="text-xs text-gray-500">Created</p>
-                        <p className="text-white">{localTask.creationDate}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Labels */}
-                {localTask.labels && localTask.labels.length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-semibold text-gray-400 mb-3">Labels</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {localTask.labels.map((label, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-[#252527] border border-[#414141] rounded-full"
-                        >
-                          <Tag className={`h-3 w-3 ${getLabelColor(label)}`} />
-                          <span className="text-xs text-gray-300">{label}</span>
+                    {/* Priority */}
+                    {(() => {
+                      const style = getPriorityStyle(localTask.priority);
+                      const flagColorClass = style.text;
+                      return (
+                        <div className="flex items-start gap-3">
+                          <Flag className={`h-4 w-4 ${flagColorClass} flex-shrink-0 mt-1`} />
+                          <div>
+                            <p className="text-xs text-gray-500">Priority</p>
+                            <p className="text-white text-sm">{localTask.priority}</p>
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })()}
+
+                    {/* Reminder */}
+                    {localTask.reminder && (
+                      <div className="flex items-start gap-3">
+                        <Bell className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="text-xs text-gray-500">Reminder</p>
+                          <p className="text-white">{localTask.reminder}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Repeat */}
+                    {localTask.repeat && (
+                      <div className="flex items-start gap-3">
+                        <Repeat className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="text-xs text-gray-500">Repeats</p>
+                          <p className="text-white">{localTask.repeat.replace(/-/g, ' ')}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Creation Date */}
+                    {localTask.creationDate && (
+                      <div className="flex items-start gap-3">
+                        <Calendar className="h-4 w-4 text-gray-400 flex-shrink-0 mt-1" />
+                        <div>
+                          <p className="text-xs text-gray-500">Created</p>
+                          <p className="text-white">{localTask.creationDate}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
+
+                  {/* Labels */}
+                  {localTask.labels && localTask.labels.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-400 mb-3">Labels</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {localTask.labels.map((label, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-[#252527] border border-[#414141] rounded-full"
+                          >
+                            <Tag className={`h-3 w-3 ${getLabelColor(label)}`} />
+                            <span className="text-xs text-gray-300">{label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          )}
 
           {/* Subtasks Section */}
           <div className="space-y-3">
