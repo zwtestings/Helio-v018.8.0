@@ -369,6 +369,19 @@ const Tasks = () => {
     setContextMenu(null);
   };
 
+  const handleNavigateTask = (direction: 'up' | 'down') => {
+    if (!selectedTaskForModal) return;
+
+    const displayedTasks = currentTaskView === 'deleted' ? deletedTasks : applyFiltersAndSort(tasks);
+    const currentIndex = displayedTasks.findIndex(t => t.id === selectedTaskForModal.id);
+
+    if (direction === 'up' && currentIndex > 0) {
+      setSelectedTaskForModal(displayedTasks[currentIndex - 1]);
+    } else if (direction === 'down' && currentIndex < displayedTasks.length - 1) {
+      setSelectedTaskForModal(displayedTasks[currentIndex + 1]);
+    }
+  };
+
   React.useEffect(() => {
     const handleClick = () => {
       setContextMenu(null);
@@ -1053,6 +1066,10 @@ const Tasks = () => {
           setTasks(updatedTasks);
           localStorage.setItem('kario-tasks', JSON.stringify(updatedTasks));
         }}
+        onNavigate={handleNavigateTask}
+        allTasks={currentTaskView === 'deleted' ? deletedTasks : applyFiltersAndSort(tasks)}
+        currentTaskIndex={selectedTaskForModal ? (currentTaskView === 'deleted' ? deletedTasks : applyFiltersAndSort(tasks)).findIndex(t => t.id === selectedTaskForModal.id) : -1}
+        sectionName="Tasks Made By Kairo"
       />
     </div>
   );

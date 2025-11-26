@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, ChevronRight, Edit } from 'lucide-react';
+import { X, Calendar, Flag, Bell, Repeat, Tag, Plus, Check, Trash2, ChevronRight, Edit, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -42,6 +42,10 @@ interface TaskWindowModalProps {
   getLabelColor: (labelName: string) => string;
   getPriorityStyle: (priorityName: string) => { bg: string; text: string };
   onTaskUpdate?: (updatedTask: Task) => void;
+  onNavigate?: (direction: 'up' | 'down') => void;
+  allTasks?: Task[];
+  currentTaskIndex?: number;
+  sectionName?: string;
 }
 
 const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
@@ -50,6 +54,10 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
   getLabelColor,
   getPriorityStyle,
   onTaskUpdate,
+  onNavigate,
+  allTasks = [],
+  currentTaskIndex = -1,
+  sectionName = 'Tasks Made By Kairo',
 }) => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(true);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
@@ -337,20 +345,67 @@ const TaskWindowModal: React.FC<TaskWindowModalProps> = ({
     setDragOverSubtaskId(null);
   };
 
+  const canNavigateUp = currentTaskIndex > 0;
+  const canNavigateDown = currentTaskIndex < allTasks.length - 1;
+
+  const handleNavigateUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (canNavigateUp && onNavigate) {
+      onNavigate('up');
+    }
+  };
+
+  const handleNavigateDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (canNavigateDown && onNavigate) {
+      onNavigate('down');
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
       <div className="bg-[#1f1f1f] rounded-[20px] w-[700px] max-w-full h-auto max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95">
-        {/* Close Button */}
-        <div className="flex justify-end p-4">
-          <button
-            onClick={handleCloseButton}
-            className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors flex-shrink-0"
-          >
-            <X className="h-5 w-5 text-gray-400 hover:text-white" />
-          </button>
+        {/* Header with Section Name and Controls */}
+        <div className="flex items-center justify-between p-4 gap-4">
+          {/* Section Name on Left */}
+          <div className="flex items-center gap-1">
+            <span className="text-gray-400">#</span>
+            <div className="flex gap-1">
+              <span className="text-gray-400">Tasks Made By </span>
+              <span className="text-white font-orbitron font-bold">Kairo</span>
+            </div>
+          </div>
+
+          {/* Navigation and Close Buttons on Right */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleNavigateUp}
+              disabled={!canNavigateUp}
+              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                canNavigateUp ? 'hover:bg-[#2a2a2a]' : 'opacity-30 cursor-not-allowed'
+              }`}
+            >
+              <ChevronUp className={`h-5 w-5 ${canNavigateUp ? 'text-gray-400 hover:text-white' : 'text-gray-600'}`} />
+            </button>
+            <button
+              onClick={handleNavigateDown}
+              disabled={!canNavigateDown}
+              className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                canNavigateDown ? 'hover:bg-[#2a2a2a]' : 'opacity-30 cursor-not-allowed'
+              }`}
+            >
+              <ChevronDown className={`h-5 w-5 ${canNavigateDown ? 'text-gray-400 hover:text-white' : 'text-gray-600'}`} />
+            </button>
+            <button
+              onClick={handleCloseButton}
+              className="p-2 hover:bg-[#2a2a2a] rounded-lg transition-colors flex-shrink-0"
+            >
+              <X className="h-5 w-5 text-gray-400 hover:text-white" />
+            </button>
+          </div>
         </div>
 
         {/* Task Details Section */}
