@@ -241,6 +241,25 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          onAddSubsubtask?.(subtask.id);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-[#1f1f1f] text-white rounded-xl border-0 z-50">
+                      <p className="text-xs">Add subtask</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           onEdit(subtask.id);
                         }}
                         className="p-1.5 rounded-lg hover:bg-[#2a2a2a] text-gray-400 hover:text-white transition-all"
