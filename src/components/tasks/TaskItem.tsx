@@ -74,6 +74,44 @@ const TaskItem: React.FC<TaskItemProps> = ({
     setIsDeleteConfirming(false);
   };
 
+  const getPriorityCheckboxColor = (priority: string) => {
+    const priorityStyle = getPriorityStyle(priority);
+    if (priority.startsWith('Priority ')) {
+      const level = parseInt(priority.replace('Priority ', ''));
+      const colorMap = {
+        1: 'border-red-500 hover:border-red-400',
+        2: 'border-orange-500 hover:border-orange-400',
+        3: 'border-yellow-500 hover:border-yellow-400',
+        4: 'border-green-500 hover:border-green-400',
+        5: 'border-blue-500 hover:border-blue-400',
+        6: 'border-purple-500 hover:border-purple-400',
+      };
+      return colorMap[level as keyof typeof colorMap] || 'border-gray-400 hover:border-gray-300';
+    }
+    const colorClassFromStyle = priorityStyle.text;
+    const colorMap: { [key: string]: string } = {
+      'text-red-500': 'border-red-500 hover:border-red-400',
+      'text-orange-500': 'border-orange-500 hover:border-orange-400',
+      'text-yellow-500': 'border-yellow-500 hover:border-yellow-400',
+      'text-green-500': 'border-green-500 hover:border-green-400',
+      'text-blue-500': 'border-blue-500 hover:border-blue-400',
+      'text-cyan-500': 'border-cyan-500 hover:border-cyan-400',
+      'text-emerald-500': 'border-emerald-500 hover:border-emerald-400',
+      'text-teal-500': 'border-teal-500 hover:border-teal-400',
+      'text-sky-500': 'border-sky-500 hover:border-sky-400',
+      'text-amber-500': 'border-amber-500 hover:border-amber-400',
+      'text-lime-500': 'border-lime-500 hover:border-lime-400',
+      'text-pink-500': 'border-pink-500 hover:border-pink-400',
+      'text-rose-500': 'border-rose-500 hover:border-rose-400',
+      'text-fuchsia-500': 'border-fuchsia-500 hover:border-fuchsia-400',
+      'text-slate-400': 'border-slate-400 hover:border-slate-300',
+      'text-gray-400': 'border-gray-400 hover:border-gray-300',
+      'text-zinc-400': 'border-zinc-400 hover:border-zinc-300',
+      'text-stone-400': 'border-stone-400 hover:border-stone-300',
+    };
+    return colorMap[colorClassFromStyle] || 'border-gray-400 hover:border-gray-300';
+  };
+
   return (
     <div
       key={task.id}
@@ -102,8 +140,8 @@ const TaskItem: React.FC<TaskItemProps> = ({
             isDeleted || task.isDraft ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
           } ${
             task.completed
-              ? 'bg-white border-white'
-              : 'border-gray-400 hover:border-gray-300'
+              ? `bg-white border-white`
+              : getPriorityCheckboxColor(task.priority)
           }`}
           onClick={(e) => {
             if (!isDeleted && !task.isDraft) {
