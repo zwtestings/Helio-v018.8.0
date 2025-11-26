@@ -154,7 +154,7 @@ const Tasks = () => {
         reminder: selectedReminder,
         labels: selectedLabels,
         repeat: selectedRepeat || undefined,
-        isDraft: !selectedDate && !newTaskDescription.trim() // Mark as draft if no date or description
+        isDraft: false
       };
       const updatedTasks = [...tasks, newTask];
       setTasks(updatedTasks);

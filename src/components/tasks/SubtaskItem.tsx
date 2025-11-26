@@ -281,7 +281,7 @@ const SubtaskItem: React.FC<SubtaskItemProps> = ({
           </TooltipProvider>
         )}
 
-        {(() => {
+        {subtask.priority && (() => {
           const style = getPriorityStyle(subtask.priority);
           return (
             <TooltipProvider delayDuration={100}>
