@@ -24,23 +24,39 @@ interface Task {
   labels?: string[];
   repeat?: string;
   isDraft?: boolean;
+  children?: Task[];
+  isCollapsed?: boolean;
 }
 
-const flattenSubtasks = (subtasks: any[] = []): any[] => {
-  const flattened: any[] = [];
+const migrateToNested = (tasks: any[]): Task[] => {
+  return tasks.map(task => {
+    const { subtasks, ...rest } = task;
+    let children: Task[] = [];
 
-  const flatten = (items: any[]) => {
-    items.forEach(item => {
-      const { subtasks: nestedSubtasks, ...rest } = item;
-      flattened.push(rest);
-      if (nestedSubtasks && nestedSubtasks.length > 0) {
-        flatten(nestedSubtasks);
-      }
-    });
-  };
+    if (subtasks && Array.isArray(subtasks)) {
+      children = subtasks.map((st: any) => ({
+        id: st.id || Date.now().toString(),
+        title: st.title || '',
+        completed: st.completed || false,
+        creationDate: st.creationDate || new Date().toLocaleDateString(),
+        dueDate: st.dueDate,
+        time: st.time,
+        priority: st.priority || 'Priority 3',
+        description: st.description || '',
+        reminder: st.reminder,
+        labels: st.labels || [],
+        repeat: st.repeat,
+        children: [],
+        isCollapsed: false,
+      }));
+    }
 
-  flatten(subtasks);
-  return flattened;
+    return {
+      ...rest,
+      children,
+      isCollapsed: false,
+    };
+  });
 };
 
 const Tasks = () => {
@@ -52,15 +68,7 @@ const Tasks = () => {
     if (!savedTasks) return [];
 
     const parsedTasks = JSON.parse(savedTasks);
-    const migratedTasks = parsedTasks.map((task: any) => {
-      if (task.subtasks) {
-        return {
-          ...task,
-          subtasks: flattenSubtasks(task.subtasks),
-        };
-      }
-      return task;
-    });
+    const migratedTasks = migrateToNested(parsedTasks);
 
     localStorage.setItem('kario-tasks', JSON.stringify(migratedTasks));
     return migratedTasks;
